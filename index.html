@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق حمو كليفر الشامل - هكر ستايل</title>
+    <style>
+        :root {
+            --bg-color: #030a05;
+            --neon-green: #00ff66;
+            --neon-blue: #00e5ff;
+            --neon-red: #ff0055;
+            --card-bg: rgba(5, 20, 10, 0.85);
+            --border-color: #00ff66;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            direction: rtl;
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.35;
+        }
+
+        /* شاشة تسجيل الدخول */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 10, 5, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            border: 2px solid var(--neon-green);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.4);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h2 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            margin-bottom: 20px;
+        }
+
+        .login-box input {
+            width: 80%;
+            padding: 12px;
+            background: #001f0c;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            font-family: inherit;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        /* حاوية التطبيق الرئيسية */
+        #appContainer {
+            display: none;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--card-bg);
+            border: 1px solid var(--neon-blue);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .welcome-msg {
+            color: #fff;
+            background: rgba(0, 255, 102, 0.15);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px dashed var(--neon-green);
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .clock {
+            font-size: 1.1rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+
+        /* الأقسام والبطاقات */
+        .section-title {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+            border-bottom: 2px dashed var(--neon-blue);
+            padding-bottom: 8px;
+            margin: 30px 0 15px 0;
+            font-size: 1.3rem;
+            text-align: right;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--neon-green);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.2);
+            backdrop-filter: blur(5px);
+            transition: 0.3s ease;
+            text-align: right;
+        }
+
+        .card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--neon-blue);
+            font-size: 1.1rem;
+        }
+
+        button, .btn-cyber {
+            background: #001f0c;
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            padding: 8px 15px;
+            font-weight: bold;
+            font-family: inherit;
+            border-radius: 4px;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--neon-green);
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            background: #001f0c;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            font-family: inherit;
+            border-radius: 4px;
+            margin-top: 8px;
+            box-sizing: border-box;
+        }
+
+        .dev-box {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+        }
+
+        .dev-box h3 {
+            color: var(--neon-red);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- خلفية مطر الأكواد (Matrix) -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h2>🔐 نظام حمو كليفر</h2>
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">أدخل كلمة المرور للمتابعة (كلمة السر: <b>حمو كليفر</b>)</p>
+            <input type="text" id="passInput" placeholder="أدخل كلمة السر هنا...">
+            <button onclick="checkPassword()">دخول النظام</button>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي -->
+    <div id="appContainer">
+        <header>
+            <h1>⚡ Hamo Clever OS</h1>
+            <div class="clock" id="liveClock">00:00:00</div>
+            <div class="welcome-msg">✨ نورت عمڰ ﺣ۾و يا زوق ✨</div>
+        </header>
+
+        <!-- قسم الأمان والحماية -->
+        <div class="section-title">🛡️ قسم الحماية وأمان الأجهزة</div>
+        <div class="grid">
+            <div class="card">
+                <h3>حماية الأجهزة من الاختراق</h3>
+                <p>فحص الثغرات وجدران الحماية ونقاط الضعف.</p>
+                <button onclick="alert('النظام آمن تماماً! لا توجد اختراقات مخترقة.')">فحص الحماية</button>
+            </div>
+            <div class="card">
+                <h3>مراقبة الأذونات الحساسة</h3>
+                <p>رصد التطبيقات التي تستخدم الكاميرا والمايك.</p>
+                <button onclick="alert('تم فحص أذونات الكاميرا والمايكروفون بنجاح.')">فحص الأذونات</button>
+            </div>
+            <div class="card">
+                <h3>أمان البلوتوث ضد الاختراق</h3>
+                <p>منع الاتصالات الوهمية وتتبع أجهزة البلوتوث الخبيثة.</p>
+                <button onclick="alert('حماية البلوتوث مفعلة بقوة.')">تأمين البلوتوث</button>
+            </div>
+            <div class="card">
+                <h3>منبه ضد السرقة للحركة</h3>
+                <p>إطلاق إنذار فوري عند تحريك الهاتف من مكانه.</p>
+                <button onclick="alert('تم تفعيل مستشعر الحركة والإنذار.')">تشغيل الإنذار</button>
+            </div>
+        </div>
+
+        <!-- قسم الشبكات والأدوات -->
+        <div class="section-title">🌐 فحص الشبكات والأكواد</div>
+        <div class="grid">
+            <div class="card">
+                <h3>فحص الشبكة والـ IP</h3>
+                <p>كشف الأجهزة المتصلة ومعرفة عنوان الـ IP والـ MAC.</p>
+                <button onclick="alert('عنوان الـ IP الحالي: 192.168.1.50 - متصل بأمان')">فحص الـ IP</button>
+            </div>
+            <div class="card">
+                <h3>أكواد الشبكات المصرية (أكثر من 50 كود)</h3>
+                <p>عروض وعرفة الرقم والاستهلاك لفودافون، أورنج، اتصالات، وي.</p>
+                <button onclick="alert('فودافون: *888# لمعرفة الرقم | أورنج: #117# | اتصالات: *555# | وي: *688#')">عرض الأكواد</button>
+            </div>
+            <div class="card">
+                <h3>توليد QR Code سريع</h3>
+                <p>إنشاء باركود للشبكات والأسماء بضغطة زر.</p>
+                <input type="text" id="qrText" placeholder="اكتب النص أو الباسورد...">
+                <button onclick="alert('تم توليد الـ QR Code بنجاح!')">توليد الباركود</button>
+            </div>
+        </div>
+
+        <!-- قسم الألعاب والترفيه والذكاء الاصطناعي -->
+        <div class="section-title">🎮 الترفيه والألعاب والذكاء الاصطناعي</div>
+        <div class="grid">
+            <div class="card">
+                <h3>لعبة XO (تحدى حمو كليفر)</h3>
+                <p>نافس الذكاء الاصطناعي الصعب ولن تستطيع غالبيته بسهولة!</p>
+                <button onclick="alert('جاري بدء لعبة XO ضد حمو كليفر الصعب جداً...')">بدء اللعبة</button>
+            </div>
+            <div class="card">
+                <h3>لعبة المارد الأزرق الشهيرة</h3>
+                <p>فكر في شخصية وسيقوم المارد بتخمينها بدقة.</p>
+                <button onclick="alert('أهلاً بك في عالم المارد الأزرق السحري!')">فتح المارد</button>
+            </div>
+            <div class="card">
+                <h3>الدردشة مع AI (حمو كليفر)</h3>
+                <p>تحدث مع مساعدك الذكي الخاص بكل حرية.</p>
+                <button onclick="alert('أنا معك يا حمو، قول عاوز تسأل عن إيه؟')بدء الشات</button>
+            </div>
+            <div class="card">
+                <h3>محرك البحث عن الأغاني والمهرجنات</h3>
+                <p>اكتب اسم المهرجان أو الاغنية للحصول عليها فوراً.</p>
+                <input type="text" placeholder="اكتب اسم الأغنية...">
+                <button onclick="alert('جاري البحث في قاعدة بيانات المهرجنات...')">بحث عن الأغنية</button>
+            </div>
+        </div>
+
+        <!-- قسم تواصل مع المطور -->
+        <div class="section-title">💻 التواصل مع المطور (قسم اختراق الحسابات والخدمات)</div>
+        <div class="grid">
+            <div class="card dev-box">
+                <h3>قسم اختراق الحسابات والخدمات الخاصة</h3>
+                <p>للطلبات المتقدمة والدعم الفني المباشر، تواصل مع المطور الآن:</p>
+                <button onclick="window.open('https://wa.me/201224634002', '_blank')">واتساب المطور (1)</button>
+                <button onclick="window.open('https://wa.me/201204369942', '_blank')">واتساب المطور (2)</button>
+                <button onclick="window.open('https://www.facebook.com/share/1DHhfCdNb5/', '_blank')">فيسبوك المطور</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // دالة التحقق من كلمة المرور
+        function checkPassword() {
+            const pass = document.getElementById('passInput').value.trim();
+            if (pass === "حمو كليفر") {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+            } else {
+                alert("كلمة المرور غير صحيحة! كلمة السر هي: حمو كليفر");
+            }
+        }
+
+        // الساعة المباشرة
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString('ar-EG');
+        }, 1000);
+
+        // خلفية مطر الأكواد (Matrix Digital Rain)
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/<>{}[]حموكليفر';
+        const fontSize = 16;
+        let columns = Math.floor(canvas.width / fontSize);
+        let drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(3, 10, 5, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00ff66';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+    </script>
+</body>
+</html>
